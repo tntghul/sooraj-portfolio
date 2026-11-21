@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Suraj Singh Portfolio</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            cyan: '#06b6d4',
+                            purple: '#a855f7',
+                        },
+                        dark: {
+                            bg: '#030712',
+                            card: 'rgba(17, 24, 39, 0.7)',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+
+    <!-- Supabase JS Client for Cloud Sync -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Shared Data Manager -->
+    <script src="./projects-data.js"></script>
+
+    <style>
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel-glow {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 0;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #4f46e5 0%, #a855f7 100%);
+            top: -150px;
+            left: -150px;
+        }
+
+        .glow-2 {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, #06b6d4 0%, #3b82f6 100%);
+            bottom: 5%;
+            right: -150px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+    </style>
+</head>
+
+<body class="antialiased relative overflow-x-hidden">
+
+    <!-- Ambient Orbs -->
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+
+    <!-- ==================== AUTH / LOGIN SCREEN ==================== -->
+    <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/90 backdrop-blur-xl">
+        <div class="w-full max-w-md glass-panel glass-panel-glow rounded-3xl p-8 border border-white/10 text-center relative z-10 space-y-6">
+            
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-2xl text-white shadow-xl shadow-brand-600/30 mx-auto">
+                <i class="ri-shield-keyhole-line"></i>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-2xl font-bold text-white tracking-tight">Portfolio Admin Access</h2>
+                <p class="text-sm text-gray-400">Enter your 4-digit security PIN to manage portfolio videos.</p>
+            </div>
+
+            <!-- PIN Form -->
+            <form id="pinForm" class="space-y-5">
+                <div class="flex justify-center gap-3">
+                    <input type="password" maxlength="4" id="pinInput" autofocus
+                        placeholder="••••"
+                        class="w-48 text-center text-3xl font-mono tracking-[0.5em] py-3.5 px-4 rounded-2xl bg-gray-900/90 border border-gray-700 text-white focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 shadow-inner">
+                </div>
+
+                <div id="pinError" class="hidden text-rose-400 text-xs font-medium flex items-center justify-center gap-1.5">
+                    <i class="ri-error-warning-line"></i>
+                    <span>Incorrect PIN. Please try again.</span>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 hover:to-brand-purple text-white font-semibold text-sm shadow-lg shadow-brand-600/25 hover:shadow-brand-600/40 transition-all duration-300">
+                    Unlock Dashboard
+                </button>
+            </form>
+
+            <div class="pt-2 border-t border-gray-800/60 flex items-center justify-between text-xs text-gray-500">
+                <span>Default PIN: <strong class="text-gray-300 font-mono">0993</strong></span>
+                <a href="./index.html" class="hover:text-brand-400 transition-colors flex items-center gap-1">
+                    <i class="ri-arrow-left-line"></i> Back to Site
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== MAIN DASHBOARD ==================== -->
+    <div id="mainDashboard" class="hidden min-h-screen flex flex-col relative z-10">
+
+        <!-- Top Navigation Bar -->
+        <header class="border-b border-gray-800/80 bg-gray-950/60 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-4">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Logo & Brand -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center font-bold text-white shadow-lg shadow-brand-600/30">
+                        SS
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold tracking-tight text-lg">Portfolio Admin</span>
+                            <span id="syncBadge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Local Ready
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-400">Suraj Singh - Video Projects CMS</p>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center gap-3">
+                    <!-- View Live Site -->
+                    <a href="./index.html" target="_blank"
+                        class="px-4 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
+                        <i class="ri-external-link-line"></i>
+                        <span>View Live Site</span>
+                    </a>
+
+                    <!-- Cloud Settings -->
+                    <button id="openSettingsBtn"
+                        class="px-4 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
+                        <i class="ri-settings-4-line"></i>
+                        <span>Cloud & Settings</span>
+                    </button>
+
+                    <!-- Logout -->
+                    <button id="logoutBtn"
+                        class="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold flex items-center gap-1 transition-all">
+                        <i class="ri-logout-box-r-line"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 space-y-8">
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-panel rounded-2xl p-5 border border-white/5 space-y-1">
+                    <div class="flex items-center justify-between text-gray-400 text-xs">
+                        <span>Total Projects</span>
+                        <i class="ri-folder-video-line text-brand-400 text-base"></i>
+                    </div>
+                    <div id="statTotal" class="text-2xl font-bold text-white">6</div>
+                    <div class="text-[11px] text-gray-500">Live on portfolio</div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5 border border-white/5 space-y-1">
+                    <div class="flex items-center justify-between text-gray-400 text-xs">
+                        <span>Motion Graphics</span>
+                        <i class="ri-magic-line text-purple-400 text-base"></i>
+                    </div>
+                    <div id="statMotion" class="text-2xl font-bold text-purple-400">3</div>
+                    <div class="text-[11px] text-gray-500">Animation & VFX</div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5 border border-white/5 space-y-1">
+                    <div class="flex items-center justify-between text-gray-400 text-xs">
+                        <span>Reels & Shorts</span>
+                        <i class="ri-smartphone-line text-amber-400 text-base"></i>
+                    </div>
+                    <div id="statReels" class="text-2xl font-bold text-amber-400">2</div>
+                    <div class="text-[11px] text-gray-500">9:16 Vertical Video</div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5 border border-white/5 space-y-1">
+                    <div class="flex items-center justify-between text-gray-400 text-xs">
+                        <span>YouTube & Ads</span>
+                        <i class="ri-youtube-line text-rose-400 text-base"></i>
+                    </div>
+                    <div id="statYoutube" class="text-2xl font-bold text-rose-400">1</div>
+                    <div class="text-[11px] text-gray-500">Long-form & script</div>
+                </div>
+            </div>
+
+            <!-- Management Action Toolbar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                
+                <!-- Search & Filters -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative flex-1 sm:w-64">
+                        <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+                        <input type="text" id="searchInput" placeholder="Search projects..."
+                            class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-900/80 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="flex items-center gap-1.5 p-1 rounded-xl bg-gray-900/60 border border-gray-800 text-xs">
+                        <button class="filter-tab active px-3 py-1.5 rounded-lg bg-brand-600 text-white font-medium" data-cat="all">All</button>
+                        <button class="filter-tab px-3 py-1.5 rounded-lg text-gray-400 hover:text-white" data-cat="motion">Motion</button>
+                        <button class="filter-tab px-3 py-1.5 rounded-lg text-gray-400 hover:text-white" data-cat="reels">Reels</button>
+                        <button class="filter-tab px-3 py-1.5 rounded-lg text-gray-400 hover:text-white" data-cat="youtube">YouTube</button>
+                    </div>
+                </div>
+
+                <!-- Add Project Button -->
+                <button id="openAddModalBtn"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 hover:to-brand-purple text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30 hover:scale-105 transition-all">
+                    <i class="ri-add-circle-fill text-base"></i>
+                    <span>Add New Project</span>
+                </button>
+            </div>
+
+            <!-- Projects Grid / Cards Container -->
+            <div id="adminProjectsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically rendered -->
+            </div>
+
+            <!-- Empty State (hidden by default) -->
+            <div id="emptyState" class="hidden text-center py-16 space-y-4">
+                <div class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-gray-600 text-3xl mx-auto">
+                    <i class="ri-folder-open-line"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">No projects found</h3>
+                <p class="text-xs text-gray-400 max-w-sm mx-auto">Try clearing your search query or add your first video project to get started.</p>
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- ==================== ADD / EDIT PROJECT MODAL ==================== -->
+    <div id="projectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="w-full max-w-2xl glass-panel glass-panel-glow rounded-3xl p-6 sm:p-8 border border-white/10 my-8 space-y-6 relative">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center text-xl">
+                        <i id="modalIcon" class="ri-add-line"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-lg font-bold text-white">Add New Project</h3>
+                        <p class="text-xs text-gray-400">Configure title, video source, and categories</p>
+                    </div>
+                </div>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="projectForm" class="space-y-4">
+                <input type="hidden" id="editProjectId" value="">
+
+                <!-- Title & Category Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Project Title *</label>
+                        <input type="text" id="projectTitle" required placeholder="e.g. Kinetic Sound Typography"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Category *</label>
+                        <select id="projectCategory" required
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                            <option value="motion">Motion Graphics</option>
+                            <option value="reels">Reels & Shorts</option>
+                            <option value="youtube">YouTube & Ads</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Badge Text & Color -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Badge Tagline</label>
+                        <input type="text" id="projectBadge" placeholder="e.g. Motion & Sound"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Badge Color Accent</label>
+                        <select id="projectBadgeColor"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                            <option value="brand">Indigo (Brand)</option>
+                            <option value="cyan">Cyan / Teal</option>
+                            <option value="purple">Purple / Neon</option>
+                            <option value="emerald">Emerald Green</option>
+                            <option value="amber">Amber / Orange</option>
+                            <option value="rose">Rose Red</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Video Source Selection -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-300 flex items-center justify-between">
+                        <span>Video Source *</span>
+                        <span class="text-[11px] text-gray-400">Direct MP4 URL / Cloudinary / Local file</span>
+                    </label>
+
+                    <div class="flex gap-2">
+                        <input type="text" id="projectVideoSrc" required
+                            placeholder="./img/your_video.mp4 or https://res.cloudinary.com/.../video.mp4"
+                            class="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
+                        <button type="button" id="previewVideoBtn"
+                            class="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium">
+                            Test Play
+                        </button>
+                    </div>
+
+                    <!-- Quick Pick Local Workspace Videos -->
+                    <div class="text-[11px] text-gray-400 flex flex-wrap items-center gap-1.5 pt-1">
+                        <span class="text-gray-500">Local Files:</span>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/scripting_performing.mp4">Scripting</button>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/motion_graphics_sound_design.mp4">Motion Graphics</button>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/music_motion_graphics.mp4">Music Motion</button>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/new_shapes_micro_design.mp4">New Shapes</button>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/vertical_ads.mp4">Vertical Ads</button>
+                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/viral_clip_selection.mp4">Viral Clips</button>
+                    </div>
+                </div>
+
+                <!-- Video Preview Box -->
+                <div id="modalVideoPreviewContainer" class="hidden rounded-2xl overflow-hidden bg-black aspect-video border border-gray-800">
+                    <video id="modalVideoPlayer" controls class="w-full h-full object-cover"></video>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-gray-300">Project Description *</label>
+                    <textarea id="projectDescription" required rows="3"
+                        placeholder="Brief summary of edit style, techniques, retention, sound design..."
+                        class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+                    <button type="button" id="cancelModalBtn"
+                        class="px-5 py-2.5 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white">
+                        Cancel
+                    </button>
+                    <button type="submit" id="saveProjectBtn"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 hover:to-brand-purple text-white text-xs font-semibold shadow-lg shadow-brand-600/30">
+                        Save Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ==================== CLOUD SETTINGS & BACKUP MODAL ==================== -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="w-full max-w-xl glass-panel glass-panel-glow rounded-3xl p-6 sm:p-8 border border-white/10 my-8 space-y-6 relative">
+            
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl">
+                        <i class="ri-cloud-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Cloud Sync & Settings</h3>
+                        <p class="text-xs text-gray-400">Connect to Supabase, change PIN & backups</p>
+                    </div>
+                </div>
+                <button id="closeSettingsModalBtn" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <!-- Supabase Cloud Sync Section -->
+            <div class="space-y-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-brand-cyan tracking-wider uppercase flex items-center gap-1.5">
+                        <i class="ri-database-2-line"></i> Supabase Cloud Database
+                    </span>
+                    <span class="text-[11px] text-gray-400">Optional (Free)</span>
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Connecting Supabase lets your changes sync seamlessly across all browsers, mobile devices, and visitors automatically!
+                </p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[11px] text-gray-300 block mb-1">Supabase Project URL</label>
+                        <input type="text" id="supabaseUrlInput" placeholder="https://xyzcompany.supabase.co"
+                            class="w-full px-3.5 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-cyan">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-300 block mb-1">Supabase Anon Public API Key</label>
+                        <input type="password" id="supabaseKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+                            class="w-full px-3.5 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-cyan">
+                    </div>
+                    <button type="button" id="saveSupabaseBtn"
+                        class="w-full py-2.5 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan hover:bg-brand-cyan hover:text-gray-950 text-xs font-semibold transition-all">
+                        Save & Test Supabase Sync
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Security PIN Section -->
+            <div class="space-y-3 p-4 rounded-2xl bg-gray-900/60 border border-gray-800">
+                <span class="text-xs font-bold text-purple-400 tracking-wider uppercase flex items-center gap-1.5">
+                    <i class="ri-lock-password-line"></i> Change Admin PIN
+                </span>
+                <div class="flex gap-2">
+                    <input type="password" id="newPinInput" maxlength="6" placeholder="Enter new PIN"
+                        class="flex-1 px-3.5 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-purple-500">
+                    <button type="button" id="changePinBtn"
+                        class="px-4 py-2 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-400 hover:bg-purple-600 hover:text-white text-xs font-semibold transition-all">
+                        Update PIN
+                    </button>
+                </div>
+            </div>
+
+            <!-- Backup & Restore Actions -->
+            <div class="space-y-3 pt-2">
+                <span class="text-xs font-bold text-gray-400 tracking-wider uppercase block">Data Maintenance</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" id="exportDataBtn"
+                        class="py-2.5 px-3 rounded-xl glass-panel text-xs text-gray-300 hover:text-white border border-gray-800 flex items-center justify-center gap-1.5 transition-all">
+                        <i class="ri-download-cloud-line"></i> Export JSON Backup
+                    </button>
+                    <button type="button" id="resetDefaultsBtn"
+                        class="py-2.5 px-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                        <i class="ri-restart-line"></i> Reset 6 Originals
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ==================== CLIENT-SIDE LOGIC ==================== -->
+    <script>
+        const colorStyles = {
+            brand: { text: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20' },
+            cyan: { text: 'text-brand-cyan', bg: 'bg-brand-cyan/10', border: 'border-brand-cyan/20' },
+            purple: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+            emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+            amber: { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+            rose: { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' }
+        };
+
+        let currentProjects = [];
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        // Check Authentication on Page Load
+        function checkAuth() {
+            const isAuth = window.portfolioData.isAuthenticated();
+            const authScreen = document.getElementById('authScreen');
+            const mainDashboard = document.getElementById('mainDashboard');
+
+            if (isAuth) {
+                authScreen.classList.add('hidden');
+                mainDashboard.classList.remove('hidden');
+                loadDashboardData();
+            } else {
+                authScreen.classList.remove('hidden');
+                mainDashboard.classList.add('hidden');
+                document.getElementById('pinInput').focus();
+            }
+        }
+
+        // Login Handler
+        document.getElementById('pinForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pin = document.getElementById('pinInput').value;
+            const pinError = document.getElementById('pinError');
+
+            if (window.portfolioData.login(pin)) {
+                pinError.classList.add('hidden');
+                document.getElementById('pinInput').value = '';
+                checkAuth();
+            } else {
+                pinError.classList.remove('hidden');
+                document.getElementById('pinInput').classList.add('border-rose-500');
+            }
+        });
+
+        // Logout Handler
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            window.portfolioData.logout();
+            checkAuth();
+        });
+
+        // Load & Render Dashboard Data
+        async function loadDashboardData() {
+            try {
+                currentProjects = await window.portfolioData.getProjects();
+                updateStats();
+                renderProjects();
+                updateSyncBadge();
+            } catch (err) {
+                console.error("Error loading projects:", err);
+            }
+        }
+
+        // Update Stat Counters
+        function updateStats() {
+            document.getElementById('statTotal').textContent = currentProjects.length;
+            document.getElementById('statMotion').textContent = currentProjects.filter(p => p.category === 'motion').length;
+            document.getElementById('statReels').textContent = currentProjects.filter(p => p.category === 'reels').length;
+            document.getElementById('statYoutube').textContent = currentProjects.filter(p => p.category === 'youtube').length;
+        }
+
+        // Update Sync Status Badge
+        function updateSyncBadge() {
+            const badge = document.getElementById('syncBadge');
+            const settings = window.portfolioData.getSettings();
+            if (settings.supabaseUrl && settings.supabaseKey) {
+                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Cloud Synced (Supabase)`;
+            } else {
+                badge.className = "text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Local Ready`;
+            }
+        }
+
+        // Render Project Cards
+        function renderProjects() {
+            const container = document.getElementById('adminProjectsContainer');
+            const emptyState = document.getElementById('emptyState');
+            container.innerHTML = '';
+
+            const filtered = currentProjects.filter(project => {
+                const matchesCat = (activeFilter === 'all' || project.category === activeFilter);
+                const matchesSearch = searchQuery === '' || 
+                    project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (project.badge && project.badge.toLowerCase().includes(searchQuery.toLowerCase()));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach((p, idx) => {
+                const colorConfig = colorStyles[p.badgeColor] || colorStyles.brand;
+                const card = document.createElement('div');
+                card.className = "glass-panel rounded-3xl overflow-hidden border border-white/5 flex flex-col justify-between group hover:border-brand-500/40 transition-all duration-300";
+
+                card.innerHTML = `
+                    <div class="relative aspect-video bg-black/60 overflow-hidden">
+                        <video preload="metadata" muted playsinline class="w-full h-full object-cover">
+                            <source src="${p.videoSrc}" type="video/mp4">
+                        </video>
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80"></div>
+                        <span class="absolute top-3 left-3 text-[10px] font-bold ${colorConfig.text} ${colorConfig.bg} ${colorConfig.border} border px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md">
+                            ${p.badge || p.category}
+                        </span>
+                        <div class="absolute top-3 right-3 flex items-center gap-1 bg-gray-900/80 backdrop-blur-md rounded-lg p-1 text-xs">
+                            <button onclick="reorder('${p.id}', 'up')" title="Move Up" class="p-1 hover:text-brand-400 transition-colors">
+                                <i class="ri-arrow-up-s-line"></i>
+                            </button>
+                            <button onclick="reorder('${p.id}', 'down')" title="Move Down" class="p-1 hover:text-brand-400 transition-colors">
+                                <i class="ri-arrow-down-s-line"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <h4 class="text-base font-bold text-white group-hover:text-brand-400 transition-colors line-clamp-1">
+                                ${p.title}
+                            </h4>
+                            <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                ${p.description}
+                            </p>
+                            <div class="text-[11px] text-gray-500 font-mono truncate" title="${p.videoSrc}">
+                                <i class="ri-film-line mr-1"></i>${p.videoSrc}
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between gap-2">
+                            <button onclick="editProject('${p.id}')"
+                                class="flex-1 py-2 rounded-xl bg-gray-900 hover:bg-brand-600/20 text-gray-300 hover:text-brand-400 border border-gray-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+                                <i class="ri-edit-line"></i> Edit
+                            </button>
+                            <button onclick="confirmDelete('${p.id}', '${encodeURIComponent(p.title)}')"
+                                class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 text-xs transition-all" title="Delete Project">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Reordering
+        window.reorder = async function(id, direction) {
+            await window.portfolioData.reorderProject(id, direction);
+            loadDashboardData();
+        };
+
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.classList.remove('active', 'bg-brand-600', 'text-white');
+                    b.classList.add('text-gray-400');
+                });
+                btn.classList.add('active', 'bg-brand-600', 'text-white');
+                btn.classList.remove('text-gray-400');
+                activeFilter = btn.dataset.cat;
+                renderProjects();
+            });
+        });
+
+        // Search input
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            renderProjects();
+        });
+
+        // Quick video picker in modal
+        document.querySelectorAll('.quick-video-pick').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('projectVideoSrc').value = btn.dataset.src;
+                testPreviewVideo(btn.dataset.src);
+            });
+        });
+
+        // Test preview video button
+        document.getElementById('previewVideoBtn').addEventListener('click', () => {
+            const src = document.getElementById('projectVideoSrc').value.trim();
+            testPreviewVideo(src);
+        });
+
+        function testPreviewVideo(src) {
+            const box = document.getElementById('modalVideoPreviewContainer');
+            const player = document.getElementById('modalVideoPlayer');
+            if (src) {
+                player.src = src;
+                box.classList.remove('hidden');
+                player.load();
+                player.play().catch(() => {});
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        // Modal Open / Close
+        const modal = document.getElementById('projectModal');
+        const form = document.getElementById('projectForm');
+
+        document.getElementById('openAddModalBtn').addEventListener('click', () => {
+            form.reset();
+            document.getElementById('editProjectId').value = '';
+            document.getElementById('modalTitle').textContent = 'Add New Project';
+            document.getElementById('modalIcon').className = 'ri-add-line';
+            document.getElementById('modalVideoPreviewContainer').classList.add('hidden');
+            document.getElementById('modalVideoPlayer').pause();
+            modal.classList.remove('hidden');
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.getElementById('modalVideoPlayer').pause();
+        }
+
+        // Edit Project
+        window.editProject = function(id) {
+            const p = currentProjects.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('editProjectId').value = p.id;
+            document.getElementById('projectTitle').value = p.title;
+            document.getElementById('projectCategory').value = p.category;
+            document.getElementById('projectBadge').value = p.badge || '';
+            document.getElementById('projectBadgeColor').value = p.badgeColor || 'brand';
+            document.getElementById('projectVideoSrc').value = p.videoSrc;
+            document.getElementById('projectDescription').value = p.description;
+
+            document.getElementById('modalTitle').textContent = 'Edit Project';
+            document.getElementById('modalIcon').className = 'ri-edit-line';
+            testPreviewVideo(p.videoSrc);
+
+            modal.classList.remove('hidden');
+        };
+
+        // Form Submit (Add or Update)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editProjectId').value;
+            const projectData = {
+                title: document.getElementById('projectTitle').value.trim(),
+                category: document.getElementById('projectCategory').value,
+                badge: document.getElementById('projectBadge').value.trim(),
+                badgeColor: document.getElementById('projectBadgeColor').value,
+                videoSrc: document.getElementById('projectVideoSrc').value.trim(),
+                description: document.getElementById('projectDescription').value.trim()
+            };
+
+            if (editId) {
+                await window.portfolioData.updateProject(editId, projectData);
+            } else {
+                await window.portfolioData.addProject(projectData);
+            }
+
+            closeModal();
+            loadDashboardData();
+        });
+
+        // Delete Project
+        window.confirmDelete = async function(id, titleEncoded) {
+            const title = decodeURIComponent(titleEncoded);
+            if (confirm(`Are you sure you want to delete "${title}"?`)) {
+                await window.portfolioData.deleteProject(id);
+                loadDashboardData();
+            }
+        };
+
+        // Settings Modal
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('openSettingsBtn').addEventListener('click', () => {
+            const settings = window.portfolioData.getSettings();
+            document.getElementById('supabaseUrlInput').value = settings.supabaseUrl || '';
+            document.getElementById('supabaseKeyInput').value = settings.supabaseKey || '';
+            settingsModal.classList.remove('hidden');
+        });
+
+        document.getElementById('closeSettingsModalBtn').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+        });
+
+        // Save Supabase Settings
+        document.getElementById('saveSupabaseBtn').addEventListener('click', async () => {
+            const url = document.getElementById('supabaseUrlInput').value.trim();
+            const key = document.getElementById('supabaseKeyInput').value.trim();
+            window.portfolioData.saveSettings({ supabaseUrl: url, supabaseKey: key });
+            updateSyncBadge();
+            alert('Cloud Database settings saved successfully!');
+            settingsModal.classList.add('hidden');
+            loadDashboardData();
+        });
+
+        // Change PIN
+        document.getElementById('changePinBtn').addEventListener('click', () => {
+            const newPin = document.getElementById('newPinInput').value.trim();
+            if (newPin.length >= 4) {
+                window.portfolioData.setAdminPin(newPin);
+                alert('Admin PIN updated successfully!');
+                document.getElementById('newPinInput').value = '';
+            } else {
+                alert('PIN must be at least 4 digits');
+            }
+        });
+
+        // Export JSON Backup
+        document.getElementById('exportDataBtn').addEventListener('click', async () => {
+            const projects = await window.portfolioData.getProjects();
+            const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `suraj-portfolio-backup-${Date.now()}.json`;
+            a.click();
+        });
+
+        // Reset to Defaults
+        document.getElementById('resetDefaultsBtn').addEventListener('click', async () => {
+            if (confirm('Reset all projects back to the original 6 default videos?')) {
+                await window.portfolioData.resetToDefaults();
+                settingsModal.classList.add('hidden');
+                loadDashboardData();
+            }
+        });
+
+        // Init on start
+        checkAuth();
+    </script>
+</body>
+
+</html>
