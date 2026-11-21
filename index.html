@@ -1029,6 +1029,8 @@
             <video id="lightboxVideo" controls autoplay class="w-full h-full object-contain bg-black">
                 <source id="lightboxSource" src="" type="video/mp4">
             </video>
+            <!-- Lightbox Image Tag -->
+            <img id="lightboxImage" src="" alt="Fullscreen Preview" class="w-full h-full object-contain bg-black hidden">
         </div>
     </div>
 
@@ -1167,11 +1169,30 @@
         const lightboxVideo = document.getElementById("lightboxVideo");
         const lightboxSource = document.getElementById("lightboxSource");
         const lightboxTitle = document.getElementById("lightboxTitle");
+        const lightboxImage = document.getElementById("lightboxImage");
 
-        function openLightbox(videoSrc, title) {
-            if (lightbox && lightboxVideo && lightboxSource) {
-                lightboxSource.src = videoSrc;
-                lightboxTitle.textContent = decodeURIComponent(title);
+        function openLightbox(mediaSrc, title) {
+            if (!lightbox) return;
+            const decodedTitle = decodeURIComponent(title);
+            lightboxTitle.textContent = decodedTitle;
+
+            const isImg = /\.(png|jpe?g|webp|gif|svg)$/i.test(mediaSrc) || mediaSrc.startsWith('data:image/');
+
+            if (isImg && lightboxImage) {
+                if (lightboxVideo) {
+                    lightboxVideo.pause();
+                    lightboxVideo.classList.add("hidden");
+                }
+                lightboxImage.src = mediaSrc;
+                lightboxImage.classList.remove("hidden");
+                lightbox.classList.remove("hidden");
+                lightbox.classList.add("flex");
+            } else if (lightboxVideo && lightboxSource) {
+                if (lightboxImage) {
+                    lightboxImage.classList.add("hidden");
+                }
+                lightboxSource.src = mediaSrc;
+                lightboxVideo.classList.remove("hidden");
                 lightboxVideo.load();
                 lightbox.classList.remove("hidden");
                 lightbox.classList.add("flex");
@@ -1180,8 +1201,8 @@
         }
 
         function closeLightbox() {
-            if (lightbox && lightboxVideo) {
-                lightboxVideo.pause();
+            if (lightbox) {
+                if (lightboxVideo) lightboxVideo.pause();
                 lightbox.classList.remove("flex");
                 lightbox.classList.add("hidden");
             }
@@ -1242,8 +1263,55 @@
             });
         }
 
+        // Load Dynamic Site Profile & Contact Details
+        function loadSiteProfile() {
+            if (!window.portfolioData || !window.portfolioData.getProfileConfig) return;
+            const profile = window.portfolioData.getProfileConfig();
+            if (!profile) return;
+
+            // WhatsApp links
+            if (profile.whatsapp) {
+                document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
+                    link.href = `https://wa.me/${profile.whatsapp}?text=Hi%20${encodeURIComponent(profile.name || 'Suraj')},%20I%20want%20to%20discuss%20a%20project.`;
+                });
+            }
+
+            // Email links
+            if (profile.email) {
+                document.querySelectorAll('a[href*="mailto:"]').forEach(link => {
+                    link.href = `mailto:${profile.email}`;
+                    const emailSpan = link.querySelector('span.text-sm');
+                    if (emailSpan) emailSpan.textContent = profile.email;
+                });
+            }
+
+            // Phone links
+            if (profile.phone) {
+                document.querySelectorAll('a[href*="tel:"]').forEach(link => {
+                    link.href = `tel:${profile.phone}`;
+                    const phoneSpan = link.querySelector('span.text-sm');
+                    if (phoneSpan) phoneSpan.textContent = profile.phone;
+                });
+            }
+
+            // Hero Title & Subtext
+            if (profile.heroHeadline) {
+                const heroTitle = document.querySelector('.hero-title');
+                if (heroTitle) {
+                    heroTitle.innerHTML = `${profile.heroHeadline.replace('Masterpieces', '<span class="text-gradient-cyan">Masterpieces</span>')}`;
+                }
+            }
+
+            if (profile.heroSubtext) {
+                const heroSub = document.querySelector('.hero-subtext');
+                if (heroSub) heroSub.textContent = profile.heroSubtext;
+            }
+        }
+
         // Load & Render Dynamic Projects from Data Manager
         async function loadDynamicProjects() {
+            loadSiteProfile();
+
             if (!window.portfolioData) {
                 setupVideoContainers();
                 return;
@@ -1266,8 +1334,18 @@
                     card.setAttribute("data-category", p.category || "youtube");
 
                     const escapedTitle = encodeURIComponent(p.title);
+                    const isImg = p.mediaType === 'image' || 
+                                  /\.(png|jpe?g|webp|gif|svg)$/i.test(p.videoSrc) ||
+                                  (p.videoSrc && p.videoSrc.startsWith('data:image/'));
 
-                    card.innerHTML = `
+                    const mediaMarkup = isImg ? `
+                        <div class="video-container aspect-video cursor-pointer" onclick="openLightbox('${p.videoSrc}', '${escapedTitle}')">
+                            <img src="${p.videoSrc}" alt="${p.title}" class="w-full h-full object-cover">
+                            <div class="video-play-btn" style="display: flex;">
+                                <i class="ri-zoom-in-line"></i>
+                            </div>
+                        </div>
+                    ` : `
                         <div class="video-container aspect-video">
                             <video preload="metadata" controls muted loop playsinline class="w-full h-full object-cover">
                                 <source src="${p.videoSrc}" type="video/mp4">
@@ -1277,6 +1355,10 @@
                                 <i class="ri-play-fill"></i>
                             </div>
                         </div>
+                    `;
+
+                    card.innerHTML = `
+                        ${mediaMarkup}
                         <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
                             <div>
                                 <span class="inline-block text-[11px] font-bold ${color.text} ${color.bg} px-3 py-1 rounded-full border ${color.border} mb-2">
@@ -1291,8 +1373,8 @@
                             </div>
                             <button onclick="openLightbox('${p.videoSrc}', '${escapedTitle}')" 
                                     class="w-full py-2.5 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-brand-500/50 flex items-center justify-center gap-2 transition-all">
-                                <i class="ri-fullscreen-line text-sm"></i>
-                                <span>Watch Fullscreen HD</span>
+                                <i class="${isImg ? 'ri-fullscreen-line' : 'ri-play-circle-line'} text-sm"></i>
+                                <span>${isImg ? 'View Fullscreen Image' : 'Watch Fullscreen HD'}</span>
                             </button>
                         </div>
                     `;

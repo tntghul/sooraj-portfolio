@@ -174,35 +174,42 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-white font-bold tracking-tight text-lg">Portfolio Admin</span>
+                            <span class="text-white font-bold tracking-tight text-lg" id="headerAdminTitle">Portfolio Admin</span>
                             <span id="syncBadge" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Local Ready
                             </span>
                         </div>
-                        <p class="text-xs text-gray-400">Suraj Singh - Video Projects CMS</p>
+                        <p class="text-xs text-gray-400" id="headerAdminSubtitle">Suraj Singh - Video Projects & Profile CMS</p>
                     </div>
                 </div>
 
                 <!-- Action Controls -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <!-- Edit Profile & Bio Button -->
+                    <button id="openProfileBtn"
+                        class="px-3.5 py-2 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-400 hover:bg-brand-600 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all">
+                        <i class="ri-user-settings-line text-sm"></i>
+                        <span>Edit Profile & Info</span>
+                    </button>
+
                     <!-- View Live Site -->
                     <a href="./index.html" target="_blank"
-                        class="px-4 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
+                        class="px-3.5 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
                         <i class="ri-external-link-line"></i>
                         <span>View Live Site</span>
                     </a>
 
                     <!-- Cloud Settings -->
                     <button id="openSettingsBtn"
-                        class="px-4 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
+                        class="px-3.5 py-2 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white hover:border-gray-700 flex items-center gap-1.5 transition-all">
                         <i class="ri-settings-4-line"></i>
                         <span>Cloud & Settings</span>
                     </button>
 
                     <!-- Logout -->
                     <button id="logoutBtn"
-                        class="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold flex items-center gap-1 transition-all">
+                        class="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold flex items-center gap-1 transition-all" title="Logout">
                         <i class="ri-logout-box-r-line"></i>
                     </button>
                 </div>
@@ -274,7 +281,7 @@
                 <button id="openAddModalBtn"
                     class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 hover:to-brand-purple text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30 hover:scale-105 transition-all">
                     <i class="ri-add-circle-fill text-base"></i>
-                    <span>Add New Project</span>
+                    <span>Add New Project / Video / Image</span>
                 </button>
             </div>
 
@@ -283,13 +290,13 @@
                 <!-- Dynamically rendered -->
             </div>
 
-            <!-- Empty State (hidden by default) -->
+            <!-- Empty State -->
             <div id="emptyState" class="hidden text-center py-16 space-y-4">
                 <div class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center text-gray-600 text-3xl mx-auto">
                     <i class="ri-folder-open-line"></i>
                 </div>
                 <h3 class="text-lg font-bold text-white">No projects found</h3>
-                <p class="text-xs text-gray-400 max-w-sm mx-auto">Try clearing your search query or add your first video project to get started.</p>
+                <p class="text-xs text-gray-400 max-w-sm mx-auto">Try clearing your search query or add your first video or image project.</p>
             </div>
 
         </main>
@@ -308,7 +315,7 @@
                     </div>
                     <div>
                         <h3 id="modalTitle" class="text-lg font-bold text-white">Add New Project</h3>
-                        <p class="text-xs text-gray-400">Configure title, video source, and categories</p>
+                        <p class="text-xs text-gray-400">Upload video or image file, title, and category</p>
                     </div>
                 </div>
                 <button id="closeModalBtn" class="text-gray-400 hover:text-white text-xl p-1">
@@ -317,8 +324,9 @@
             </div>
 
             <!-- Modal Form -->
-            <form id="projectForm" class="space-y-4">
+            <form id="projectForm" class="space-y-5">
                 <input type="hidden" id="editProjectId" value="">
+                <input type="hidden" id="projectMediaType" value="video">
 
                 <!-- Title & Category Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -361,38 +369,67 @@
                     </div>
                 </div>
 
-                <!-- Video Source Selection -->
-                <div class="space-y-2">
-                    <label class="text-xs font-semibold text-gray-300 flex items-center justify-between">
-                        <span>Video Source *</span>
-                        <span class="text-[11px] text-gray-400">Direct MP4 URL / Cloudinary / Local file</span>
-                    </label>
+                <!-- Media Source: File Upload vs URL Tabs -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-gray-300">Project Media (Video or Image) *</label>
+                        <span id="detectedMediaBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20">Video Mode</span>
+                    </div>
 
-                    <div class="flex gap-2">
-                        <input type="text" id="projectVideoSrc" required
-                            placeholder="./img/your_video.mp4 or https://res.cloudinary.com/.../video.mp4"
-                            class="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
-                        <button type="button" id="previewVideoBtn"
-                            class="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium">
-                            Test Play
+                    <!-- Toggle Mode Pills -->
+                    <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-gray-900 border border-gray-800 text-xs text-center font-medium">
+                        <button type="button" id="tabUploadBtn" class="py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5">
+                            <i class="ri-file-upload-line"></i>
+                            <span>Upload File from Device</span>
+                        </button>
+                        <button type="button" id="tabUrlBtn" class="py-2 rounded-lg text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5">
+                            <i class="ri-link"></i>
+                            <span>Paste URL / Pick Local</span>
                         </button>
                     </div>
 
-                    <!-- Quick Pick Local Workspace Videos -->
-                    <div class="text-[11px] text-gray-400 flex flex-wrap items-center gap-1.5 pt-1">
-                        <span class="text-gray-500">Local Files:</span>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/scripting_performing.mp4">Scripting</button>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/motion_graphics_sound_design.mp4">Motion Graphics</button>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/music_motion_graphics.mp4">Music Motion</button>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/new_shapes_micro_design.mp4">New Shapes</button>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/vertical_ads.mp4">Vertical Ads</button>
-                        <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/viral_clip_selection.mp4">Viral Clips</button>
+                    <!-- File Drop / Upload Box -->
+                    <div id="fileUploadBox" class="border-2 border-dashed border-gray-700 hover:border-brand-500 rounded-2xl p-6 text-center cursor-pointer bg-gray-950/60 hover:bg-gray-900/60 transition-all">
+                        <input type="file" id="mediaFileInput" accept="video/mp4,video/webm,image/png,image/jpeg,image/webp,image/gif" class="hidden">
+                        <div class="w-12 h-12 rounded-2xl bg-brand-600/20 text-brand-400 flex items-center justify-center text-2xl mx-auto mb-2">
+                            <i class="ri-upload-cloud-2-line"></i>
+                        </div>
+                        <p class="text-sm text-white font-semibold" id="uploadStatusText">Click to choose a Video or Image file from device</p>
+                        <p class="text-xs text-gray-400 mt-1">Supports MP4, WebM, PNG, JPG, WebP</p>
+                    </div>
+
+                    <!-- URL & Quick Picker Box -->
+                    <div id="urlInputBox" class="hidden space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="projectVideoSrc"
+                                placeholder="./img/your_video.mp4 or https://.../file.mp4"
+                                class="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-brand-500">
+                            <button type="button" id="previewMediaBtn"
+                                class="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium">
+                                Preview
+                            </button>
+                        </div>
+
+                        <!-- Quick Pick Local Videos -->
+                        <div class="text-[11px] text-gray-400 flex flex-wrap items-center gap-1.5 pt-1">
+                            <span class="text-gray-500">Pick Existing:</span>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/scripting_performing.mp4">Scripting</button>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/motion_graphics_sound_design.mp4">Motion Graphics</button>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/music_motion_graphics.mp4">Music Motion</button>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/new_shapes_micro_design.mp4">New Shapes</button>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/vertical_ads.mp4">Vertical Ads</button>
+                            <button type="button" class="quick-video-pick px-2 py-0.5 rounded bg-gray-800/80 hover:bg-brand-600/30 text-gray-300 hover:text-white" data-src="./img/viral_clip_selection.mp4">Viral Clips</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Video Preview Box -->
-                <div id="modalVideoPreviewContainer" class="hidden rounded-2xl overflow-hidden bg-black aspect-video border border-gray-800">
-                    <video id="modalVideoPlayer" controls class="w-full h-full object-cover"></video>
+                <!-- Preview Box (Both Video & Image supported) -->
+                <div id="modalMediaPreviewContainer" class="hidden rounded-2xl overflow-hidden bg-black aspect-video border border-gray-800 relative">
+                    <video id="modalVideoPlayer" controls class="w-full h-full object-cover hidden"></video>
+                    <img id="modalImagePlayer" src="" alt="Preview" class="w-full h-full object-contain hidden bg-gray-950">
+                    <button type="button" id="clearMediaBtn" class="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-black/70 hover:bg-rose-600 text-white text-xs transition-colors">
+                        Clear File
+                    </button>
                 </div>
 
                 <!-- Description -->
@@ -412,6 +449,98 @@
                     <button type="submit" id="saveProjectBtn"
                         class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 hover:to-brand-purple text-white text-xs font-semibold shadow-lg shadow-brand-600/30">
                         Save Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ==================== EDIT PROFILE & BIO MODAL ==================== -->
+    <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="w-full max-w-2xl glass-panel glass-panel-glow rounded-3xl p-6 sm:p-8 border border-white/10 my-8 space-y-6 relative">
+            
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center text-xl">
+                        <i class="ri-user-settings-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Edit Profile & Contact Details</h3>
+                        <p class="text-xs text-gray-400">Change your Name, WhatsApp, Email, Phone and Headline</p>
+                    </div>
+                </div>
+                <button id="closeProfileModalBtn" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <!-- Profile Form -->
+            <form id="profileForm" class="space-y-4">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Your Full Name *</label>
+                        <input type="text" id="profileName" required placeholder="Suraj Singh"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Professional Title *</label>
+                        <input type="text" id="profileRole" required placeholder="Professional Video Editor & Content Creator"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">WhatsApp Number (with country code) *</label>
+                        <input type="text" id="profileWhatsapp" required placeholder="919304185885"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Display Phone Number *</label>
+                        <input type="text" id="profilePhone" required placeholder="+91 9304185885"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Email Address *</label>
+                        <input type="email" id="profileEmail" required placeholder="shinesuraj0993@gmail.com"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-gray-300">Location *</label>
+                        <input type="text" id="profileLocation" required placeholder="Ranchi, Jharkhand, India"
+                            class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-gray-300">Hero Section Main Headline *</label>
+                    <input type="text" id="profileHeroHeadline" required placeholder="Transforming Raw Footage Into High-Retention Visual Masterpieces"
+                        class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-gray-300">Hero Section Subtitle / Bio *</label>
+                    <textarea id="profileHeroSubtext" required rows="3"
+                        placeholder="I craft viral shorts, cinematic commercial ads, beat-synced motion graphics..."
+                        class="w-full px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:border-brand-500"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+                    <button type="button" id="cancelProfileBtn"
+                        class="px-5 py-2.5 rounded-xl glass-panel text-xs font-semibold text-gray-300 hover:text-white">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan hover:from-brand-500 text-white text-xs font-semibold shadow-lg shadow-brand-600/30">
+                        Save Changes
                     </button>
                 </div>
             </form>
@@ -527,6 +656,7 @@
                 authScreen.classList.add('hidden');
                 mainDashboard.classList.remove('hidden');
                 loadDashboardData();
+                loadProfileHeader();
             } else {
                 authScreen.classList.remove('hidden');
                 mainDashboard.classList.add('hidden');
@@ -555,6 +685,14 @@
             window.portfolioData.logout();
             checkAuth();
         });
+
+        // Load Header from Profile
+        function loadProfileHeader() {
+            const profile = window.portfolioData.getProfileConfig();
+            if (profile && profile.name) {
+                document.getElementById('headerAdminSubtitle').textContent = `${profile.name} - Video Projects & Profile CMS`;
+            }
+        }
 
         // Load & Render Dashboard Data
         async function loadDashboardData() {
@@ -589,7 +727,7 @@
             }
         }
 
-        // Render Project Cards
+        // Render Project Cards (Supports both Images and Videos)
         function renderProjects() {
             const container = document.getElementById('adminProjectsContainer');
             const emptyState = document.getElementById('emptyState');
@@ -612,17 +750,27 @@
 
             filtered.forEach((p, idx) => {
                 const colorConfig = colorStyles[p.badgeColor] || colorStyles.brand;
+                const isImage = p.mediaType === 'image' || 
+                                /\.(png|jpe?g|webp|gif|svg)$/i.test(p.videoSrc) ||
+                                (p.videoSrc && p.videoSrc.startsWith('data:image/'));
+
                 const card = document.createElement('div');
                 card.className = "glass-panel rounded-3xl overflow-hidden border border-white/5 flex flex-col justify-between group hover:border-brand-500/40 transition-all duration-300";
 
+                const mediaMarkup = isImage ? `
+                    <img src="${p.videoSrc}" alt="${p.title}" class="w-full h-full object-cover">
+                ` : `
+                    <video preload="metadata" muted playsinline class="w-full h-full object-cover">
+                        <source src="${p.videoSrc}" type="video/mp4">
+                    </video>
+                `;
+
                 card.innerHTML = `
                     <div class="relative aspect-video bg-black/60 overflow-hidden">
-                        <video preload="metadata" muted playsinline class="w-full h-full object-cover">
-                            <source src="${p.videoSrc}" type="video/mp4">
-                        </video>
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80"></div>
+                        ${mediaMarkup}
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-80 pointer-events-none"></div>
                         <span class="absolute top-3 left-3 text-[10px] font-bold ${colorConfig.text} ${colorConfig.bg} ${colorConfig.border} border px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md">
-                            ${p.badge || p.category}
+                            ${p.badge || p.category} ${isImage ? '• Image' : '• Video'}
                         </span>
                         <div class="absolute top-3 right-3 flex items-center gap-1 bg-gray-900/80 backdrop-blur-md rounded-lg p-1 text-xs">
                             <button onclick="reorder('${p.id}', 'up')" title="Move Up" class="p-1 hover:text-brand-400 transition-colors">
@@ -642,8 +790,9 @@
                             <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed">
                                 ${p.description}
                             </p>
-                            <div class="text-[11px] text-gray-500 font-mono truncate" title="${p.videoSrc}">
-                                <i class="ri-film-line mr-1"></i>${p.videoSrc}
+                            <div class="text-[11px] text-gray-500 font-mono truncate" title="${p.videoSrc.startsWith('data:') ? 'Uploaded local file' : p.videoSrc}">
+                                <i class="${isImage ? 'ri-image-line' : 'ri-film-line'} mr-1"></i>
+                                ${p.videoSrc.startsWith('data:') ? 'Uploaded File (' + (isImage ? 'Image' : 'Video') + ')' : p.videoSrc}
                             </div>
                         </div>
 
@@ -689,34 +838,112 @@
             renderProjects();
         });
 
+        // ==================== MEDIA SOURCE TABS & FILE UPLOAD LOGIC ====================
+        const tabUploadBtn = document.getElementById('tabUploadBtn');
+        const tabUrlBtn = document.getElementById('tabUrlBtn');
+        const fileUploadBox = document.getElementById('fileUploadBox');
+        const urlInputBox = document.getElementById('urlInputBox');
+        const mediaFileInput = document.getElementById('mediaFileInput');
+        const uploadStatusText = document.getElementById('uploadStatusText');
+
+        // Toggle between File Upload and URL
+        tabUploadBtn.addEventListener('click', () => {
+            tabUploadBtn.className = "py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5";
+            tabUrlBtn.className = "py-2 rounded-lg text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+            fileUploadBox.classList.remove('hidden');
+            urlInputBox.classList.add('hidden');
+        });
+
+        tabUrlBtn.addEventListener('click', () => {
+            tabUrlBtn.className = "py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5";
+            tabUploadBtn.className = "py-2 rounded-lg text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+            urlInputBox.classList.remove('hidden');
+            fileUploadBox.classList.add('hidden');
+        });
+
+        // Click file drop box to open file picker
+        fileUploadBox.addEventListener('click', () => {
+            mediaFileInput.click();
+        });
+
+        // Handle File Selection
+        mediaFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+
+            uploadStatusText.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const dataUrl = evt.target.result;
+                document.getElementById('projectVideoSrc').value = dataUrl;
+                document.getElementById('projectMediaType').value = isImage ? 'image' : 'video';
+                displayMediaPreview(dataUrl, isImage);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Clear Media Preview
+        document.getElementById('clearMediaBtn').addEventListener('click', () => {
+            document.getElementById('projectVideoSrc').value = '';
+            document.getElementById('modalMediaPreviewContainer').classList.add('hidden');
+            document.getElementById('modalVideoPlayer').pause();
+            uploadStatusText.textContent = 'Click to choose a Video or Image file from device';
+            mediaFileInput.value = '';
+        });
+
         // Quick video picker in modal
         document.querySelectorAll('.quick-video-pick').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('projectVideoSrc').value = btn.dataset.src;
-                testPreviewVideo(btn.dataset.src);
+                document.getElementById('projectMediaType').value = 'video';
+                displayMediaPreview(btn.dataset.src, false);
             });
         });
 
-        // Test preview video button
-        document.getElementById('previewVideoBtn').addEventListener('click', () => {
+        // Preview button click
+        document.getElementById('previewMediaBtn').addEventListener('click', () => {
             const src = document.getElementById('projectVideoSrc').value.trim();
-            testPreviewVideo(src);
+            const isImg = /\.(png|jpe?g|webp|gif|svg)$/i.test(src) || src.startsWith('data:image/');
+            document.getElementById('projectMediaType').value = isImg ? 'image' : 'video';
+            displayMediaPreview(src, isImg);
         });
 
-        function testPreviewVideo(src) {
-            const box = document.getElementById('modalVideoPreviewContainer');
-            const player = document.getElementById('modalVideoPlayer');
-            if (src) {
-                player.src = src;
-                box.classList.remove('hidden');
-                player.load();
-                player.play().catch(() => {});
-            } else {
+        function displayMediaPreview(src, isImage) {
+            const box = document.getElementById('modalMediaPreviewContainer');
+            const videoPlayer = document.getElementById('modalVideoPlayer');
+            const imagePlayer = document.getElementById('modalImagePlayer');
+            const badge = document.getElementById('detectedMediaBadge');
+
+            if (!src) {
                 box.classList.add('hidden');
+                return;
+            }
+
+            box.classList.remove('hidden');
+
+            if (isImage) {
+                videoPlayer.classList.add('hidden');
+                videoPlayer.pause();
+                imagePlayer.classList.remove('hidden');
+                imagePlayer.src = src;
+                badge.textContent = "Image Mode";
+                badge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            } else {
+                imagePlayer.classList.add('hidden');
+                videoPlayer.classList.remove('hidden');
+                videoPlayer.src = src;
+                videoPlayer.load();
+                videoPlayer.play().catch(() => {});
+                badge.textContent = "Video Mode";
+                badge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20";
             }
         }
 
-        // Modal Open / Close
+        // ==================== MODAL OPEN / CLOSE ====================
         const modal = document.getElementById('projectModal');
         const form = document.getElementById('projectForm');
 
@@ -725,8 +952,10 @@
             document.getElementById('editProjectId').value = '';
             document.getElementById('modalTitle').textContent = 'Add New Project';
             document.getElementById('modalIcon').className = 'ri-add-line';
-            document.getElementById('modalVideoPreviewContainer').classList.add('hidden');
+            document.getElementById('modalMediaPreviewContainer').classList.add('hidden');
             document.getElementById('modalVideoPlayer').pause();
+            uploadStatusText.textContent = 'Click to choose a Video or Image file from device';
+            mediaFileInput.value = '';
             modal.classList.remove('hidden');
         });
 
@@ -751,9 +980,14 @@
             document.getElementById('projectVideoSrc').value = p.videoSrc;
             document.getElementById('projectDescription').value = p.description;
 
+            const isImg = p.mediaType === 'image' || 
+                          /\.(png|jpe?g|webp|gif|svg)$/i.test(p.videoSrc) ||
+                          (p.videoSrc && p.videoSrc.startsWith('data:image/'));
+
+            document.getElementById('projectMediaType').value = isImg ? 'image' : 'video';
             document.getElementById('modalTitle').textContent = 'Edit Project';
             document.getElementById('modalIcon').className = 'ri-edit-line';
-            testPreviewVideo(p.videoSrc);
+            displayMediaPreview(p.videoSrc, isImg);
 
             modal.classList.remove('hidden');
         };
@@ -762,12 +996,23 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const editId = document.getElementById('editProjectId').value;
+            const src = document.getElementById('projectVideoSrc').value.trim();
+            const isImg = document.getElementById('projectMediaType').value === 'image' || 
+                          /\.(png|jpe?g|webp|gif|svg)$/i.test(src) || 
+                          src.startsWith('data:image/');
+
+            if (!src) {
+                alert('Please upload a file or enter a media URL.');
+                return;
+            }
+
             const projectData = {
                 title: document.getElementById('projectTitle').value.trim(),
                 category: document.getElementById('projectCategory').value,
                 badge: document.getElementById('projectBadge').value.trim(),
                 badgeColor: document.getElementById('projectBadgeColor').value,
-                videoSrc: document.getElementById('projectVideoSrc').value.trim(),
+                videoSrc: src,
+                mediaType: isImg ? 'image' : 'video',
                 description: document.getElementById('projectDescription').value.trim()
             };
 
@@ -790,7 +1035,51 @@
             }
         };
 
-        // Settings Modal
+        // ==================== EDIT PROFILE & BIO MODAL ====================
+        const profileModal = document.getElementById('profileModal');
+        const profileForm = document.getElementById('profileForm');
+
+        document.getElementById('openProfileBtn').addEventListener('click', () => {
+            const config = window.portfolioData.getProfileConfig();
+            document.getElementById('profileName').value = config.name || '';
+            document.getElementById('profileRole').value = config.role || '';
+            document.getElementById('profileWhatsapp').value = config.whatsapp || '';
+            document.getElementById('profilePhone').value = config.phone || '';
+            document.getElementById('profileEmail').value = config.email || '';
+            document.getElementById('profileLocation').value = config.location || '';
+            document.getElementById('profileHeroHeadline').value = config.heroHeadline || '';
+            document.getElementById('profileHeroSubtext').value = config.heroSubtext || '';
+            profileModal.classList.remove('hidden');
+        });
+
+        document.getElementById('closeProfileModalBtn').addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+        });
+
+        document.getElementById('cancelProfileBtn').addEventListener('click', () => {
+            profileModal.classList.add('hidden');
+        });
+
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const updatedConfig = {
+                name: document.getElementById('profileName').value.trim(),
+                role: document.getElementById('profileRole').value.trim(),
+                whatsapp: document.getElementById('profileWhatsapp').value.trim(),
+                phone: document.getElementById('profilePhone').value.trim(),
+                email: document.getElementById('profileEmail').value.trim(),
+                location: document.getElementById('profileLocation').value.trim(),
+                heroHeadline: document.getElementById('profileHeroHeadline').value.trim(),
+                heroSubtext: document.getElementById('profileHeroSubtext').value.trim()
+            };
+
+            await window.portfolioData.saveProfileConfig(updatedConfig);
+            profileModal.classList.add('hidden');
+            loadProfileHeader();
+            alert('Profile & Contact details updated successfully!');
+        });
+
+        // ==================== SETTINGS MODAL ====================
         const settingsModal = document.getElementById('settingsModal');
         document.getElementById('openSettingsBtn').addEventListener('click', () => {
             const settings = window.portfolioData.getSettings();

@@ -68,7 +68,19 @@ const DEFAULT_PROJECTS = [
     }
 ];
 
+const DEFAULT_PROFILE_CONFIG = {
+    name: "Suraj Singh",
+    role: "Professional Video Editor & Content Creator",
+    whatsapp: "919304185885",
+    email: "shinesuraj0993@gmail.com",
+    phone: "+91 9304185885",
+    location: "Ranchi, Jharkhand, India",
+    heroHeadline: "Transforming Raw Footage Into High-Retention Visual Masterpieces",
+    heroSubtext: "I craft viral shorts, cinematic commercial ads, beat-synced motion graphics, and engaging long-form YouTube stories designed to captivate your audience."
+};
+
 const STORAGE_KEY = "suraj_portfolio_projects";
+const PROFILE_KEY = "suraj_portfolio_profile";
 const SETTINGS_KEY = "suraj_portfolio_settings";
 const AUTH_KEY = "suraj_admin_authenticated";
 const PIN_KEY = "suraj_admin_pin";
@@ -89,6 +101,26 @@ class PortfolioDataManager {
             } catch (err) {
                 console.warn("Supabase init error:", err);
                 this.supabase = null;
+            }
+        }
+    }
+
+    getProfileConfig() {
+        try {
+            const raw = localStorage.getItem(PROFILE_KEY);
+            return raw ? { ...DEFAULT_PROFILE_CONFIG, ...JSON.parse(raw) } : { ...DEFAULT_PROFILE_CONFIG };
+        } catch (e) {
+            return { ...DEFAULT_PROFILE_CONFIG };
+        }
+    }
+
+    async saveProfileConfig(config) {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(config));
+        if (this.supabase) {
+            try {
+                await this.supabase.from("site_config").upsert([{ id: "profile", ...config }]);
+            } catch (err) {
+                console.warn("Supabase site_config sync:", err);
             }
         }
     }
@@ -185,13 +217,19 @@ class PortfolioDataManager {
     // Add a single new project
     async addProject(project) {
         const projects = await this.getProjects();
+        const src = (project.videoSrc || '').trim();
+        const isImg = project.mediaType === 'image' || 
+                      /\.(png|jpe?g|webp|gif|svg)$/i.test(src) || 
+                      src.startsWith('data:image/');
+
         const newProject = {
             id: project.id || "proj_" + Date.now(),
             title: project.title.trim(),
             category: project.category || "youtube",
             badge: project.badge || "Featured Edit",
             badgeColor: project.badgeColor || "brand",
-            videoSrc: project.videoSrc.trim(),
+            videoSrc: src,
+            mediaType: isImg ? 'image' : 'video',
             description: project.description.trim(),
             order: projects.length + 1,
             createdAt: new Date().toISOString()
@@ -208,9 +246,16 @@ class PortfolioDataManager {
         const index = projects.findIndex(p => p.id === id);
         if (index === -1) throw new Error("Project not found");
 
+        const src = (updatedFields.videoSrc !== undefined ? updatedFields.videoSrc : projects[index].videoSrc || '').trim();
+        const isImg = updatedFields.mediaType === 'image' || 
+                      /\.(png|jpe?g|webp|gif|svg)$/i.test(src) || 
+                      src.startsWith('data:image/');
+
         projects[index] = {
             ...projects[index],
             ...updatedFields,
+            videoSrc: src,
+            mediaType: isImg ? 'image' : 'video',
             updatedAt: new Date().toISOString()
         };
 
